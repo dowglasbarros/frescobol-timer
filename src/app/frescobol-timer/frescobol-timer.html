@@ -37,9 +37,18 @@
 
   <footer class="history-bar">
     @for (v of historico(); track $index) {
-      <div class="history-dot" [style.height.%]="v * 2"></div>
+      <div class="history-dot" [style.height.%]="v * 2">
+        <span class="dot-label">{{ (v * 3.6).toFixed(0) }}</span>
+      </div>
     } @empty {
-      <p>Aguardando primeira batida...</p>
+      <div class="empty-state">
+        <div class="pulse-ring"></div>
+        <div class="empty-content">
+          <span class="icon">🎾</span>
+          <p>Aguardando primeira batida...</p>
+          <small>Toque em qualquer lado para iniciar</small>
+        </div>
+      </div>
     }
   </footer>
 </div>
