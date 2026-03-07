@@ -1,24 +1,37 @@
 <div class="container">
   <header class="dashboard">
-    <div class="input-group">
-      <label>Distância (m):</label>
-      <input type="number" [(ngModel)]="distancia" step="0.5" />
+    <div class="stats-grid">
+      <div class="stat-item">
+        <label>Distância</label>
+        <input type="number" [(ngModel)]="distancia" />
+      </div>
+
+      <div class="stat-item main">
+        <small>Última</small>
+        <span class="value">{{ velocidadeAtualKmH() }}</span>
+        <small>km/h</small>
+      </div>
+
+      <div class="stat-item">
+        <small>Média (10)</small>
+        <span class="avg">{{ mediaVelocidadeKmH() }}</span>
+        <small>km/h</small>
+      </div>
     </div>
 
-    <div class="result">
-      <span class="value">{{ velocidadeKmH() }}</span>
-      <span class="unit">km/h</span>
-    </div>
-
-    <button (click)="reset()">Reset</button>
+    <button class="btn-reset" (click)="reset()">Reset</button>
   </header>
 
   <main class="touch-zones">
-    <div class="zone left" (touchstart)="registrarToque('esquerda')">
-      <span>Lado A</span>
-    </div>
-    <div class="zone right" (touchstart)="registrarToque('direita')">
-      <span>Lado B</span>
-    </div>
+    <div class="zone left" (touchstart)="registrarToque()">Lado A</div>
+    <div class="zone right" (touchstart)="registrarToque()">Lado B</div>
   </main>
+
+  <footer class="history-bar">
+    @for (v of historico(); track $index) {
+      <div class="history-dot" [style.height.%]="v * 2"></div>
+    } @empty {
+      <p>Aguardando primeira batida...</p>
+    }
+  </footer>
 </div>
