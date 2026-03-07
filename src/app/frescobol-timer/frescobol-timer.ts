@@ -67,4 +67,34 @@ export class FrescobolTimer implements OnInit {
     this.historico.set([]);
     this.lastTapTime.set(null);
   }
+
+  exportarDados() {
+    const dados = this.historico();
+    if (dados.length === 0) return;
+
+    // Cabeçalho e Linhas do CSV
+    const csvContent = [
+      ['Batida', 'Velocidade (m/s)', 'Velocidade (km/h)'],
+      ...dados.map((v, i) => [i + 1, v.toFixed(2), (v * 3.6).toFixed(1)]),
+    ]
+      .map((e) => e.join(','))
+      .join('\n');
+
+    // Criação do Blob (Binary Large Object)
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    // Link temporário para disparo do download
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `sessao_frescobol_${new Date().getTime()}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Limpeza de memória
+    URL.revokeObjectURL(url);
+  }
 }

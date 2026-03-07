@@ -114,3 +114,41 @@
     transition: height 0.3s ease;
   }
 }
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  .btn-reset {
+    background: #ff4444;
+    color: white;
+  }
+
+  .btn-export {
+    background: #007bff;
+    color: white;
+    animation: fadeIn 0.3s ease-in;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
