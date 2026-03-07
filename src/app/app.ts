@@ -1,9 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { FrescobolTimer } from './frescobol-timer/frescobol-timer';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [FrescobolTimer],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

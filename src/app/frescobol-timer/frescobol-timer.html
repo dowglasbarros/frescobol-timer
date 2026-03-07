@@ -1,0 +1,24 @@
+<div class="container">
+  <header class="dashboard">
+    <div class="input-group">
+      <label>Distância (m):</label>
+      <input type="number" [(ngModel)]="distancia" step="0.5" />
+    </div>
+
+    <div class="result">
+      <span class="value">{{ velocidadeKmH() }}</span>
+      <span class="unit">km/h</span>
+    </div>
+
+    <button (click)="reset()">Reset</button>
+  </header>
+
+  <main class="touch-zones">
+    <div class="zone left" (touchstart)="registrarToque('esquerda')">
+      <span>Lado A</span>
+    </div>
+    <div class="zone right" (touchstart)="registrarToque('direita')">
+      <span>Lado B</span>
+    </div>
+  </main>
+</div>
