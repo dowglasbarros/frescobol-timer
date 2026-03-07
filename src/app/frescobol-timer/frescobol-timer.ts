@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 export class FrescobolTimer implements OnInit {
   // Configurações Base
   distancia = signal<number>(8);
-  tempoRestante = signal<number>(10);
+  tempoRestante = signal<number>(300);
   timerAtivo = signal<boolean>(false);
   quedas = signal<number>(0);
   lastTapTime = signal<number | null>(null);
@@ -93,28 +93,24 @@ export class FrescobolTimer implements OnInit {
     const agora = performance.now();
     const anterior = this.lastTapTime();
 
-    // TRAVA 1: Impedir registro se o tempo acabou
-    if (this.tempoRestante() <= 0) {
-      return;
+    // Trava de tempo esgotado
+    if (this.tempoRestante() <= 0) return;
+
+    // Trava de double-tap (só bloqueia se for o mesmo jogador DAQUELE RALLY)
+    if (this.lastPlayerId() === idBotaoClicado) return;
+
+    // Auto-inicia se estiver pausado
+    if (!this.timerAtivo() && this.tempoRestante() > 0) {
+      this.toggleTimer();
     }
 
-    // TRAVA 2: Impedir dois toques seguidos no mesmo lado
-    if (this.lastPlayerId() === idBotaoClicado) {
-      return; // Ignora o toque se for o mesmo jogador da última vez
-    }
-
-    // Auto-start se o timer estiver pausado (mas ainda houver tempo)
-    if (!this.timerAtivo() && this.tempoRestante() > 0) this.toggleTimer();
-
+    // Se tem um "anterior", significa que a bola estava no ar. Calcula os pontos!
     if (anterior) {
       const deltaS = (agora - anterior) / 1000;
-
-      // Anti-bounce técnico (evita ruído físico do clique)
       if (deltaS > 0.15) {
         const velKmh = (this.distancia() / deltaS) * 3.6;
         const pts = Math.pow(velKmh, 2) / 50;
 
-        // Lógica de Inversão V2 (Quem bate pontua)
         if (idBotaoClicado === 1) {
           this.pontosJ2.update((h) => [...h, pts]);
           this.velAtualJ2.set(velKmh);
@@ -122,24 +118,24 @@ export class FrescobolTimer implements OnInit {
           this.pontosJ1.update((h) => [...h, pts]);
           this.velAtualJ1.set(velKmh);
         }
-
-        this.executarFeedbacks();
-
-        // Atualiza quem foi o último a tocar com sucesso
-        this.lastPlayerId.set(idBotaoClicado);
       }
-    } else {
-      // Primeiro toque da partida
-      this.lastPlayerId.set(idBotaoClicado);
-      this.executarFeedbacks(); // Feedback visual de início
     }
 
+    // Feedback tátil e sonoro OCORRE SEMPRE (mesmo no saque)
+    this.executarFeedbacks();
+
+    // Atualiza a memória de tempo e lado para a PRÓXIMA batida
+    this.lastPlayerId.set(idBotaoClicado);
     this.lastTapTime.set(agora);
   }
 
   registrarQueda() {
     this.quedas.update((q) => q + 1);
-    this.lastTapTime.set(null); // Reseta o timer de batida para a próxima
+
+    // Zera o tempo e libera qualquer lado para "sacar" a próxima bola
+    this.lastTapTime.set(null);
+    this.lastPlayerId.set(null);
+
     if ('vibrate' in navigator) navigator.vibrate([40, 30, 40]);
     if (this.quedas() >= 20) this.finalizarPartida('Limite de quedas!');
   }
@@ -154,6 +150,8 @@ export class FrescobolTimer implements OnInit {
   toggleTimer() {
     if (this.timerAtivo()) {
       clearInterval(this.intervalId);
+      this.lastTapTime.set(null);
+      this.lastPlayerId.set(null);
     } else {
       this.intervalId = setInterval(() => {
         this.tempoRestante.update((t) => (t > 0 ? t - 1 : 0));
