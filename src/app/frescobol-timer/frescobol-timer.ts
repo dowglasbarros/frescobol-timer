@@ -11,14 +11,14 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FrescobolTimer implements OnInit {
-  // Configurações e Estado
-  private audioCtx: AudioContext | null = null;
+  // Configurações Base
   distancia = signal<number>(8);
-  tempoRestante = signal<number>(300); // 5 minutos
+  tempoRestante = signal<number>(300);
   timerAtivo = signal<boolean>(false);
-  quedas = signal<number>(0); // Limite de 20 quedas
+  quedas = signal<number>(0);
   lastTapTime = signal<number | null>(null);
   intervalId: any;
+  audioCtx: AudioContext | null = null;
 
   // Jogadores
   jogador1 = signal<string>('Atleta A');
@@ -34,18 +34,12 @@ export class FrescobolTimer implements OnInit {
   velAtualJ1 = signal<number>(0);
   velAtualJ2 = signal<number>(0);
 
-  // Formatação do Tempo (Minutos:Segundos)
-  cronometroFormatado = computed(() => {
-    const min = Math.floor(this.tempoRestante() / 60);
-    const seg = this.tempoRestante() % 60;
-    return `${min}:${seg.toString().padStart(2, '0')}`;
-  });
-
-  // GOLPES: Soma dos 150 golpes mais fortes de cada atleta
+  // 1. CÁLCULO BRUTO (Top 150 golpes)
   totalBrutoJ1 = computed(() => this.calcularTop150(this.pontosJ1()));
   totalBrutoJ2 = computed(() => this.calcularTop150(this.pontosJ2()));
 
-  // EQUILÍBRIO: Diferença de pontuação limitada a 30%
+  // 2. REGRA DE EQUILÍBRIO (Teto de 30%)
+  // Se J1 tem 1000 e J2 tem 500, o J1 só aproveita 650 (500 * 1.3) para o time.
   pontosEquilibrados = computed(() => {
     let p1 = this.totalBrutoJ1();
     let p2 = this.totalBrutoJ2();
@@ -61,17 +55,21 @@ export class FrescobolTimer implements OnInit {
     };
   });
 
-  // QUEDAS: Primeiras 5 sem penalidades. Da 6ª em diante, -3% por queda
+  // 3. PENALIDADE DE QUEDAS
   percentualPenalidade = computed(() => {
     const q = this.quedas();
-    return q > 5 ? (q - 5) * 0.03 : 0;
+    return q > 5 ? (q - 5) * 0.03 : 0; // -3% por queda após a 5ª
   });
 
-  // Pontuação Final do Time
   pontuacaoFinal = computed(() => {
     const total = this.pontosEquilibrados().total;
-    const penalidade = total * this.percentualPenalidade();
-    return Math.round(total - penalidade);
+    return Math.round(total * (1 - this.percentualPenalidade()));
+  });
+
+  cronometroFormatado = computed(() => {
+    const min = Math.floor(this.tempoRestante() / 60);
+    const seg = this.tempoRestante() % 60;
+    return `${min}:${seg.toString().padStart(2, '0')}`;
   });
 
   ngOnInit(): void {
@@ -89,83 +87,42 @@ export class FrescobolTimer implements OnInit {
     }
   }
 
-  executarFeedbacks() {
-    // 1. VIBRAÇÃO (20ms é o "clique" ideal para simular o impacto da bola)
-    if ('vibrate' in navigator) {
-      navigator.vibrate(20);
-    }
-
-    // 2. SOM (Oscilador de alta precisão para evitar delay de arquivos MP3)
-    this.tocarBip(600, 0.05); // Som agudo e curto para a batida
-  }
-
-  tocarBip(frequencia: number, duracao: number) {
-    try {
-      if (!this.audioCtx)
-        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-      const osc = this.audioCtx.createOscillator();
-      const gain = this.audioCtx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(frequencia, this.audioCtx.currentTime);
-
-      gain.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duracao);
-
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
-
-      osc.start();
-      osc.stop(this.audioCtx.currentTime + duracao);
-    } catch (e) {
-      console.warn('Áudio não suportado ou bloqueado pelo navegador.');
-    }
-  }
-
-  registrarBatida(id: 1 | 2) {
+  // REGISTRO DE BATIDA COM INVERSÃO DE LÓGICA
+  registrarBatida(idBotaoClicado: 1 | 2) {
     const agora = performance.now();
     const anterior = this.lastTapTime();
 
+    // Auto-start se o timer estiver parado
     if (!this.timerAtivo() && this.tempoRestante() > 0) this.toggleTimer();
 
     if (anterior) {
       const deltaS = (agora - anterior) / 1000;
-      // Impede toque duplo acidental (delay mínimo de 150ms)
       if (deltaS > 0.15) {
+        // Anti-double tap (150ms)
         const velKmh = (this.distancia() / deltaS) * 3.6;
+        const pts = Math.pow(velKmh, 2) / 50;
 
-        // Aplicação da Tabela FrescoGO!: Golpe = vel² / 50
-        const pontosDoGolpe = Math.pow(velKmh, 2) / 50;
-
-        if (id === 1) {
-          // Se o J1 rebateu, a bola veio do J2. O J2 que bateu forte!
-          this.pontosJ2.update((h) => [...h, pontosDoGolpe]);
+        // A MUDANÇA: Se o botão 1 foi clicado, a bola veio do Jogador 2.
+        if (idBotaoClicado === 1) {
+          this.pontosJ2.update((h) => [...h, pts]);
           this.velAtualJ2.set(velKmh);
         } else {
-          // Se o J2 rebateu, a bola veio do J1. O J1 que bateu forte!
-          this.pontosJ1.update((h) => [...h, pontosDoGolpe]);
+          this.pontosJ1.update((h) => [...h, pts]);
           this.velAtualJ1.set(velKmh);
         }
-
-        if ('vibrate' in navigator) navigator.vibrate(20);
+        this.executarFeedbacks();
       }
     }
-
-    this.executarFeedbacks();
     this.lastTapTime.set(agora);
   }
 
   registrarQueda() {
     this.quedas.update((q) => q + 1);
-    this.lastTapTime.set(null); // Reseta o delay para a próxima batida
-
-    if (this.quedas() >= 20) {
-      this.finalizarPartida('20 Quedas alcançadas. Jogo sumariamente interrompido!');
-    }
+    this.lastTapTime.set(null); // Reseta o timer de batida para a próxima
+    if ('vibrate' in navigator) navigator.vibrate([40, 30, 40]);
+    if (this.quedas() >= 20) this.finalizarPartida('Limite de quedas!');
   }
 
-  // Função utilitária para pegar apenas os 150 maiores valores
   private calcularTop150(pontos: number[]): number {
     return [...pontos]
       .sort((a, b) => b - a)
@@ -179,14 +136,16 @@ export class FrescobolTimer implements OnInit {
     } else {
       this.intervalId = setInterval(() => {
         this.tempoRestante.update((t) => (t > 0 ? t - 1 : 0));
-        if (this.tempoRestante() === 0) this.finalizarPartida('Fim dos 5 Minutos!');
+        if (this.tempoRestante() === 0) this.finalizarPartida('Fim de Jogo!');
       }, 1000);
     }
     this.timerAtivo.update((v) => !v);
   }
 
   resetTudo() {
-    this.resetTimer();
+    clearInterval(this.intervalId);
+    this.timerAtivo.set(false);
+    this.tempoRestante.set(300);
     this.pontosJ1.set([]);
     this.pontosJ2.set([]);
     this.velAtualJ1.set(0);
@@ -195,15 +154,30 @@ export class FrescobolTimer implements OnInit {
     this.lastTapTime.set(null);
   }
 
-  private resetTimer() {
+  finalizarPartida(m: string) {
     clearInterval(this.intervalId);
     this.timerAtivo.set(false);
-    this.tempoRestante.set(300);
+    alert(`${m}\nScore Final: ${this.pontuacaoFinal()}`);
   }
 
-  finalizarPartida(motivo: string) {
-    this.resetTimer();
-    alert(`${motivo}\nPontuação Final do Time: ${this.pontuacaoFinal()}`);
+  executarFeedbacks() {
+    if ('vibrate' in navigator) navigator.vibrate(20);
+    this.tocarBip(600, 0.05);
+  }
+
+  tocarBip(f: number, d: number) {
+    try {
+      if (!this.audioCtx)
+        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+      osc.frequency.setValueAtTime(f, this.audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + d);
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+      osc.start();
+      osc.stop(this.audioCtx.currentTime + d);
+    } catch {}
   }
 
   ngOnDestroy() {

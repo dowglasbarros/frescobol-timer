@@ -19,6 +19,16 @@
         </button>
       </div>
 
+      <div class="score-card">
+        <div class="score-header">SCORE DA DUPLA</div>
+        <div class="main-points">{{ pontuacaoFinal() }}</div>
+        @if (percentualPenalidade() > 0) {
+          <div class="penalty-warning">
+            PENALIDADE: -{{ (percentualPenalidade() * 100).toFixed(0) }}% PONTOS
+          </div>
+        }
+      </div>
+
       <div class="falls-section">
         <label>QUEDAS</label>
         <div class="fall-box" (click)="registrarQueda()" [class.penalized]="quedas() > 5">
@@ -26,16 +36,6 @@
           <small>/20</small>
         </div>
       </div>
-    </div>
-
-    <div class="score-card">
-      <div class="score-header">SCORE DA DUPLA (v4.0)</div>
-      <div class="main-points">{{ pontuacaoFinal() }}</div>
-      @if (percentualPenalidade() > 0) {
-        <div class="penalty-warning">
-          PENALIDADE: -{{ (percentualPenalidade() * 100).toFixed(0) }}% PONTOS
-        </div>
-      }
     </div>
 
     <div class="players-row">
@@ -87,6 +87,7 @@
       <span>{{ jogador2() }}</span>
     </div>
   </main>
-
-  <button class="reset-fab" (click)="resetTudo()">↺</button>
+  @if (!timerAtivo()) {
+    <button class="reset-fab" (click)="resetTudo()">↺</button>
+  }
 </div>
