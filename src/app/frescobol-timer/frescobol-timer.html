@@ -25,12 +25,15 @@
           }
         </div>
 
-        <div class="timer-display" [class.low]="tempoRestante() < 30">
-          {{ cronometroFormatado() }}
+        <div class="timer-card">
+          <div class="timer-header">TEMPO DE JOGO</div>
+          <div class="timer-display" [class.low]="tempoRestante() < 30">
+            {{ cronometroFormatado() }}
 
-          <button class="btn-main" (click)="toggleTimer()" [class.active]="timerAtivo()">
-            {{ timerAtivo() ? 'PAUSAR' : 'INICIAR' }}
-          </button>
+            <button class="btn-main" (click)="toggleTimer()" [class.active]="timerAtivo()">
+              {{ timerAtivo() ? 'PAUSAR' : 'INICIAR' }}
+            </button>
+          </div>
         </div>
       </div>
 

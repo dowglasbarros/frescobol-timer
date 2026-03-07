@@ -15,9 +15,10 @@
   border-bottom: 2px solid #00ff88;
 
   .top-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
     align-items: center;
+    gap: 10px;
     margin-bottom: 1rem;
 
     .side-col {
@@ -25,6 +26,8 @@
       flex-direction: column;
       gap: 5px;
       text-align: center;
+      min-width: 80px;
+
       label {
         font-size: 0.6rem;
         color: #666;
@@ -33,7 +36,58 @@
     }
 
     .center-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      min-width: 0;
       text-align: center;
+    }
+
+    .score-card {
+      width: 100%;
+      margin: 0;
+      .score-header {
+        font-size: 0.7rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+        opacity: 0.8;
+      }
+
+      .main-points {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #00ff88;
+        margin: 5px 0;
+      }
+
+      .penalty-warning {
+        color: #ff4444;
+        font-size: 0.7rem;
+        font-weight: bold;
+      }
+    }
+
+    .score-card {
+      transition: border 0.2s;
+
+      &.waiting-left {
+        border-left: 5px solid #00ff88;
+      }
+
+      &.waiting-right {
+        border-right: 5px solid #00ff88;
+      }
+    }
+
+    .timer-card {
+      .timer-header {
+        display: none;
+        font-size: 0.7rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+        opacity: 0.8;
+      }
 
       .timer-display {
         margin-top: 5px;
@@ -43,7 +97,6 @@
         font-size: 2rem;
         font-weight: 900;
         color: #00ff88;
-        line-height: 1;
         font-family: monospace;
       }
 
@@ -64,39 +117,6 @@
         }
       }
     }
-
-    .score-card {
-      border-radius: 12px;
-      text-align: center;
-      margin-top: 0.5rem;
-      .score-header {
-        font-size: 0.7rem;
-        font-weight: bold;
-        letter-spacing: 2px;
-        opacity: 0.8;
-      }
-      .main-points {
-        font-size: 2.2rem;
-        font-weight: 900;
-        color: #00ff88;
-        margin: 5px 0;
-      }
-      .penalty-warning {
-        color: #ff4444;
-        font-size: 0.7rem;
-        font-weight: bold;
-      }
-    }
-
-    .score-card {
-      transition: border 0.2s;
-      &.waiting-left {
-        border-left: 5px solid #00ff88;
-      }
-      &.waiting-right {
-        border-right: 5px solid #00ff88;
-      }
-    }
   }
 }
 
@@ -107,20 +127,24 @@
   display: flex;
   align-items: baseline;
   cursor: pointer;
+
   &.penalized {
     background: rgba(255, 68, 68, 0.2);
     color: #ff4444;
     border: 1px solid #ff4444;
   }
+
   .num {
     font-size: 1.5rem;
     font-weight: 900;
   }
+
   small {
     font-size: 0.8rem;
     opacity: 0.6;
     margin-left: 2px;
   }
+
   &:active {
     transform: scale(0.95);
   }
@@ -133,18 +157,22 @@
   font-weight: 900;
   border-radius: 8px;
   padding: 5px;
+
   .num {
     font-size: 1rem;
     font-weight: 900;
   }
+
   small {
     font-size: 0.8rem;
     opacity: 0.6;
     margin-left: 2px;
   }
+
   &:active {
     transform: scale(0.95);
   }
+
   &.danger {
     color: #ff4444;
     border-color: #ff4444;
@@ -155,6 +183,7 @@
   display: flex;
   flex-direction: column;
   text-align: center;
+
   button {
     background: #333;
     border: none;
@@ -162,6 +191,7 @@
     border-radius: 4px;
     padding: 2px;
   }
+
   span {
     font-size: 0.9rem;
     font-weight: bold;
@@ -171,6 +201,7 @@
 .players-row {
   display: flex;
   gap: 15px;
+
   .player {
     flex: 1;
     background: #1a1a1a;
@@ -181,11 +212,13 @@
 
     .name-edit {
       margin-bottom: 5px;
+
       strong {
         font-size: 0.8rem;
         color: #00ff88;
         text-transform: uppercase;
       }
+
       input {
         width: 90%;
         background: #000;
@@ -195,11 +228,13 @@
         font-size: 0.8rem;
       }
     }
+
     .speed-row {
       font-size: 1.2rem;
       font-weight: bold;
       font-family: monospace;
     }
+
     .indiv-score {
       font-size: 0.7rem;
       color: #aaa;
@@ -254,4 +289,41 @@
   font-size: 1.5rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   cursor: pointer;
+}
+
+/* --- DETECÇÃO DE TELA HORIZONTAL (LANDSCAPE) --- */
+@media screen and (orientation: landscape) {
+  .dashboard .top-row {
+    margin-bottom: 0.3rem;
+
+    .center-col {
+      flex-direction: row;
+      gap: 30px;
+
+      .score-card {
+        width: auto;
+        .main-points {
+          font-size: 1.8rem;
+        }
+      }
+
+      .timer-card {
+        .timer-header {
+          display: block;
+        }
+
+        .timer-display {
+          font-size: 1.8rem;
+          margin-top: 5px 0;
+        }
+      }
+    }
+  }
+
+  .players-row {
+    padding: 5px 0;
+    .player {
+      padding: 5px;
+    }
+  }
 }
