@@ -1,10 +1,10 @@
 {
   "name": "Frescobol Speed Tracker",
-  "short_name": "Frescobol Speed",
-  "theme_color": "#1a1a1a",
-  "background_color": "#1a1a1a",
+  "short_name": "Speed Tracker",
   "display": "standalone",
   "orientation": "any",
+  "theme_color": "#000000",
+  "background_color": "#000000",
   "scope": "/frescobol-timer",
   "start_url": "/frescobol-timer",
   "icons": [
