@@ -1,98 +1,92 @@
-<div class="container" [attr.data-theme]="theme()">
-  <!-- <nav class="theme-switcher">
-    <button (click)="setTheme('default')" [class.active]="theme() === 'default'">Padrão</button>
-    <button (click)="setTheme('solar')" [class.active]="theme() === 'solar'">☀️ Dia</button>
-    <button (click)="setTheme('night')" [class.active]="theme() === 'night'">🌙 Noite</button>
-
-    <button class="sound-toggle" (click)="toggleSound()" [class.muted]="!isSoundEnabled()">
-      {{ isSoundEnabled() ? '🔊 Som On' : '🔇 Mudo' }}
-    </button>
-  </nav> -->
-
+<div class="fresco-ui">
   <header class="dashboard">
-    <!-- <div class="actions">
-      <button class="btn-reset" (click)="reset()">Limpar</button>
-
-      @if (historico().length > 0) {
-        <button class="btn-export" (click)="exportarDados()">📥 Exportar CSV</button>
-      }
-    </div> -->
-
-    <div class="top-bar">
-      <div class="distance-stepper">
-        <label class="stepper-label">DISTÂNCIA DO RALLY</label>
-        <div class="stepper-controls">
-          <button class="step-btn" (click)="ajustarDistancia(-0.5)" aria-label="Diminuir">
-            <span>−</span>
-          </button>
-
-          <div class="display-wrapper">
-            <input type="number" [(ngModel)]="distancia" class="distance-input" step="0.5" />
-            <span class="unit-tag">METROS</span>
-          </div>
-
-          <button class="step-btn" (click)="ajustarDistancia(0.5)" aria-label="Aumentar">
-            <span>+</span>
-          </button>
+    <div class="top-row">
+      <div class="stat-group">
+        <label>DISTÂNCIA</label>
+        <div class="stepper">
+          <button (click)="distancia.update(d => d-0.5)">-</button>
+          <span>{{ distancia() }}m</span>
+          <button (click)="distancia.update(d => d+0.5)">+</button>
         </div>
       </div>
 
-      <div class="session-avg">
-        <small>MÉDIA</small>
-        <strong>{{ mediaVelocidadeKmH() }}</strong>
-        <small>km/h</small>
+      <div class="timer-section">
+        <div class="time-display" [class.low]="tempoRestante() < 30">
+          {{ cronometroFormatado() }}
+        </div>
+        <button class="btn-main" (click)="toggleTimer()" [class.active]="timerAtivo()">
+          {{ timerAtivo() ? 'PAUSAR' : 'INICIAR' }}
+        </button>
+      </div>
+
+      <div class="falls-section">
+        <label>QUEDAS</label>
+        <div class="fall-box" (click)="registrarQueda()" [class.penalized]="quedas() > 5">
+          <span class="num">{{ quedas() }}</span>
+          <small>/20</small>
+        </div>
       </div>
     </div>
 
-    <div class="speed-display">
-      <div class="speed-value">
-        <span class="number">{{ velocidadeAtualKmH() }}</span>
-        <span class="label">km/h</span>
+    <div class="score-card">
+      <div class="score-header">SCORE DA DUPLA (v4.0)</div>
+      <div class="main-points">{{ pontuacaoFinal() }}</div>
+      @if (percentualPenalidade() > 0) {
+        <div class="penalty-warning">
+          PENALIDADE: -{{ (percentualPenalidade() * 100).toFixed(0) }}% PONTOS
+        </div>
+      }
+    </div>
+
+    <div class="players-row">
+      <div class="player">
+        <div class="name-edit" (click)="editandoJ1.set(true)">
+          @if (editandoJ1()) {
+            <input
+              [(ngModel)]="jogador1"
+              (blur)="editandoJ1.set(false)"
+              (keyup.enter)="editandoJ1.set(false)"
+              autofocus
+            />
+          } @else {
+            <strong>{{ jogador1() }} ✎</strong>
+          }
+        </div>
+        <div class="speed-row">
+          <span class="speed">{{ velAtualJ1() | number: '1.1-1' }} <small>km/h</small></span>
+        </div>
+        <div class="indiv-score">Score: {{ pontosEquilibrados().j1 }}</div>
       </div>
 
-      <button class="btn-reset-fab" (click)="reset()" aria-label="Resetar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-          <path d="M3 3v5h5"></path>
-        </svg>
-      </button>
+      <div class="player">
+        <div class="name-edit" (click)="editandoJ2.set(true)">
+          @if (editandoJ2()) {
+            <input
+              [(ngModel)]="jogador2"
+              (blur)="editandoJ2.set(false)"
+              (keyup.enter)="editandoJ2.set(false)"
+              autofocus
+            />
+          } @else {
+            <strong>{{ jogador2() }} ✎</strong>
+          }
+        </div>
+        <div class="speed-row">
+          <span class="speed">{{ velAtualJ2() | number: '1.1-1' }} <small>km/h</small></span>
+        </div>
+        <div class="indiv-score">Score: {{ pontosEquilibrados().j2 }}</div>
+      </div>
     </div>
   </header>
 
   <main class="touch-zones">
-    <div class="zone left" (touchstart)="registrarToque()">Lado A</div>
-    <div class="zone right" (touchstart)="registrarToque()">Lado B</div>
+    <div class="zone left-zone" (mousedown)="registrarBatida(1)">
+      <span>{{ jogador1() }}</span>
+    </div>
+    <div class="zone right-zone" (mousedown)="registrarBatida(2)">
+      <span>{{ jogador2() }}</span>
+    </div>
   </main>
 
-  <footer class="history-bar">
-    @for (v of historico(); track $index) {
-      <div class="history-dot" [style.height.%]="v * 2">
-        <span class="dot-label">{{ (v * 3.6).toFixed(0) }}</span>
-      </div>
-    } @empty {
-      <div class="empty-state">
-        <div class="pulse-ring"></div>
-        <div class="empty-content">
-          <span class="icon">🎾</span>
-          <p>Aguardando primeira batida...</p>
-          <small>Toque em qualquer lado para iniciar</small>
-        </div>
-      </div>
-    }
-  </footer>
+  <button class="reset-fab" (click)="resetTudo()">↺</button>
 </div>
-
-@if (showInstallModal()) {
-  <div class="modal-overlay">
-    <div class="install-card">
-      <div class="icon-header">🎾</div>
-      <h3>Instalar Frescobol Speed?</h3>
-      <p>Tenha acesso rápido na areia, modo tela cheia e funcionamento offline.</p>
-
-      <div class="modal-actions">
-        <button class="btn-cancel" (click)="fecharModal()">Agora não</button>
-        <button class="btn-confirm" (click)="instalarPWA()">Instalar</button>
-      </div>
-    </div>
-  </div>
-}
