@@ -1,5 +1,5 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { SwUpdate } from '@angular/service-worker';
 import { FrescobolTimer } from './frescobol-timer/frescobol-timer';
 
 @Component({
@@ -9,5 +9,17 @@ import { FrescobolTimer } from './frescobol-timer/frescobol-timer';
   styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = signal('frescobol-timer');
+  private swUpdate = inject(SwUpdate);
+
+  constructor() {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates.subscribe((evt) => {
+        if (evt.type === 'VERSION_READY') {
+          if (confirm('Nova versão disponível! Deseja atualizar agora?')) {
+            window.location.reload();
+          }
+        }
+      });
+    }
+  }
 }
