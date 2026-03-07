@@ -18,26 +18,45 @@
       }
     </div> -->
 
-    <div class="stats-grid">
-      <div class="stat-item">
-        <label>Distância</label>
-        <input type="number" [(ngModel)]="distancia" />
+    <div class="top-bar">
+      <div class="distance-stepper">
+        <label class="stepper-label">DISTÂNCIA DO RALLY</label>
+        <div class="stepper-controls">
+          <button class="step-btn" (click)="ajustarDistancia(-0.5)" aria-label="Diminuir">
+            <span>−</span>
+          </button>
+
+          <div class="display-wrapper">
+            <input type="number" [(ngModel)]="distancia" class="distance-input" step="0.5" />
+            <span class="unit-tag">METROS</span>
+          </div>
+
+          <button class="step-btn" (click)="ajustarDistancia(0.5)" aria-label="Aumentar">
+            <span>+</span>
+          </button>
+        </div>
       </div>
 
-      <div class="stat-item main">
-        <small>Última</small>
-        <span class="value">{{ velocidadeAtualKmH() }}</span>
-        <small>km/h</small>
-      </div>
-
-      <div class="stat-item">
-        <small>Média (10)</small>
-        <span class="avg">{{ mediaVelocidadeKmH() }}</span>
+      <div class="session-avg">
+        <small>MÉDIA</small>
+        <strong>{{ mediaVelocidadeKmH() }}</strong>
         <small>km/h</small>
       </div>
     </div>
 
-    <button class="btn-reset" (click)="reset()">Reset</button>
+    <div class="speed-display">
+      <div class="speed-value">
+        <span class="number">{{ velocidadeAtualKmH() }}</span>
+        <span class="label">km/h</span>
+      </div>
+
+      <button class="btn-reset-fab" (click)="reset()" aria-label="Resetar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+      </button>
+    </div>
   </header>
 
   <main class="touch-zones">

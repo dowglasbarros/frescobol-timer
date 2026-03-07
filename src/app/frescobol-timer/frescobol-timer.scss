@@ -12,36 +12,89 @@
 }
 
 .dashboard {
-  height: 30%;
-  background: #1a1a1a;
-  color: #fff;
+  padding: 20px;
+  background: linear-gradient(180deg, var(--bg-accent) 0%, var(--bg-primary) 100%);
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 2px solid #333;
+  flex-direction: column;
+  gap: 15px;
+}
 
-  .result {
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.speed-display {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+
+  .speed-value {
     text-align: center;
-    .value {
-      font-size: 3rem;
-      font-weight: bold;
-      color: #00ff88;
+    .number {
+      font-family: 'JetBrains Mono', 'Roboto Mono', monospace; // Fonte técnica
+      font-size: 5.5rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--color-highlight);
+      text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+      display: block;
     }
-    .unit {
-      font-size: 1.2rem;
-      margin-left: 0.5rem;
+    .label {
+      font-size: 1rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      opacity: 0.6;
+      font-weight: 700;
     }
   }
+}
 
-  input {
-    width: 60px;
-    background: #333;
-    border: 1px solid #444;
-    color: white;
-    padding: 8px;
-    border-radius: 4px;
+.btn-reset-fab {
+  position: absolute;
+  right: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--color-highlight);
+  background: transparent;
+  color: var(--color-highlight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:active {
+    transform: rotate(-180deg) scale(0.9);
+    background: var(--color-highlight);
+    color: var(--bg-primary);
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.session-avg {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 5px 15px;
+  border-radius: 20px;
+  text-align: right;
+
+  small {
+    font-size: 0.6rem;
+    display: block;
+    opacity: 0.5;
+  }
+  strong {
     font-size: 1.2rem;
+    color: var(--color-avg);
   }
 }
 
@@ -71,20 +124,6 @@
     &:active {
       background: #00ff88;
       color: #000;
-    }
-  }
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  width: 100%;
-  align-items: center;
-  text-align: center;
-
-  @media (max-width: 400px) {
-    .main .value {
-      font-size: 2.5rem; // Reduz um pouco o número principal em telas pequenas
     }
   }
 }
@@ -367,5 +406,78 @@
   .btn-confirm {
     background: var(--color-highlight);
     color: #000;
+  }
+}
+
+.distance-stepper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  .stepper-label {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    opacity: 0.5;
+    font-weight: 800;
+  }
+}
+
+.stepper-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  .step-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--color-highlight);
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--color-highlight);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    &:active {
+      background: var(--color-highlight);
+      color: #000;
+    }
+  }
+}
+
+.display-wrapper {
+  position: relative;
+  text-align: center;
+
+  .distance-input {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    width: 80px;
+    text-align: center;
+    outline: none;
+
+    // Remove as setas padrão do browser
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
+  }
+
+  .unit-tag {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: bold;
+    color: var(--color-highlight);
+    margin-top: -5px;
   }
 }

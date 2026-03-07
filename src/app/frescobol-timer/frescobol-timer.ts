@@ -88,6 +88,17 @@ export class FrescobolTimer implements OnInit {
     this.showInstallModal.set(false);
   }
 
+  ajustarDistancia(valor: number) {
+    this.distancia.update((d) => {
+      const novaDist = d + valor;
+      // Limite mínimo de 1m e máximo de 30m para evitar erros de cálculo
+      return novaDist >= 1 ? novaDist : 1;
+    });
+
+    // Feedback tátil ao ajustar
+    if ('vibrate' in navigator) navigator.vibrate(10);
+  }
+
   fecharModal() {
     this.showInstallModal.set(false);
   }
