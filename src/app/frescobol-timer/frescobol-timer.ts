@@ -13,12 +13,13 @@ import { FormsModule } from '@angular/forms';
 export class FrescobolTimer implements OnInit {
   // Configurações Base
   distancia = signal<number>(8);
-  tempoRestante = signal<number>(300);
+  tempoRestante = signal<number>(10);
   timerAtivo = signal<boolean>(false);
   quedas = signal<number>(0);
   lastTapTime = signal<number | null>(null);
   intervalId: any;
   audioCtx: AudioContext | null = null;
+  lastPlayerId = signal<1 | 2 | null>(null);
 
   // Jogadores
   jogador1 = signal<string>('Atleta A');
@@ -92,17 +93,28 @@ export class FrescobolTimer implements OnInit {
     const agora = performance.now();
     const anterior = this.lastTapTime();
 
-    // Auto-start se o timer estiver parado
+    // TRAVA 1: Impedir registro se o tempo acabou
+    if (this.tempoRestante() <= 0) {
+      return;
+    }
+
+    // TRAVA 2: Impedir dois toques seguidos no mesmo lado
+    if (this.lastPlayerId() === idBotaoClicado) {
+      return; // Ignora o toque se for o mesmo jogador da última vez
+    }
+
+    // Auto-start se o timer estiver pausado (mas ainda houver tempo)
     if (!this.timerAtivo() && this.tempoRestante() > 0) this.toggleTimer();
 
     if (anterior) {
       const deltaS = (agora - anterior) / 1000;
+
+      // Anti-bounce técnico (evita ruído físico do clique)
       if (deltaS > 0.15) {
-        // Anti-double tap (150ms)
         const velKmh = (this.distancia() / deltaS) * 3.6;
         const pts = Math.pow(velKmh, 2) / 50;
 
-        // A MUDANÇA: Se o botão 1 foi clicado, a bola veio do Jogador 2.
+        // Lógica de Inversão V2 (Quem bate pontua)
         if (idBotaoClicado === 1) {
           this.pontosJ2.update((h) => [...h, pts]);
           this.velAtualJ2.set(velKmh);
@@ -110,9 +122,18 @@ export class FrescobolTimer implements OnInit {
           this.pontosJ1.update((h) => [...h, pts]);
           this.velAtualJ1.set(velKmh);
         }
+
         this.executarFeedbacks();
+
+        // Atualiza quem foi o último a tocar com sucesso
+        this.lastPlayerId.set(idBotaoClicado);
       }
+    } else {
+      // Primeiro toque da partida
+      this.lastPlayerId.set(idBotaoClicado);
+      this.executarFeedbacks(); // Feedback visual de início
     }
+
     this.lastTapTime.set(agora);
   }
 
@@ -152,6 +173,7 @@ export class FrescobolTimer implements OnInit {
     this.velAtualJ2.set(0);
     this.quedas.set(0);
     this.lastTapTime.set(null);
+    this.lastPlayerId.set(null);
   }
 
   finalizarPartida(m: string) {

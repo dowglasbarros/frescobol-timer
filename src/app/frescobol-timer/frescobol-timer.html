@@ -19,7 +19,11 @@
         </button>
       </div>
 
-      <div class="score-card">
+      <div
+        class="score-card"
+        [class.waiting-left]="lastPlayerId() === 2"
+        [class.waiting-right]="lastPlayerId() === 1"
+      >
         <div class="score-header">SCORE DA DUPLA</div>
         <div class="main-points">{{ pontuacaoFinal() }}</div>
         @if (percentualPenalidade() > 0) {
