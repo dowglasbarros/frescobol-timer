@@ -1,0 +1,60 @@
+{
+  "configVersion": 1,
+  "timestamp": 1772868365062,
+  "index": "/frescobol-timer/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/frescobol-timer/favicon.ico",
+        "/frescobol-timer/index.html",
+        "/frescobol-timer/main-KS3SFS5R.js",
+        "/frescobol-timer/manifest.webmanifest",
+        "/frescobol-timer/styles-UKW5LG54.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [],
+  "hashTable": {
+    "/frescobol-timer/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
+    "/frescobol-timer/index.html": "5c6fd634e74ad13ee89672f241cc1f35585e919b",
+    "/frescobol-timer/main-KS3SFS5R.js": "a6a4e9b14567159401e762d3d2a8ed13626d83bf",
+    "/frescobol-timer/manifest.webmanifest": "8f0a4e5185b5c16454665de7537c3d21e63931b4",
+    "/frescobol-timer/styles-UKW5LG54.css": "3cfd89a41f2fa849811cb5c7fbcca9b9ccc37772"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}
