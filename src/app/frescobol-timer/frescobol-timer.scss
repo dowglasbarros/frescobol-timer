@@ -215,3 +215,75 @@
     opacity: 0;
   }
 }
+
+:host {
+  // Variáveis Padrão (Default)
+  --bg-primary: #1a1a1a;
+  --bg-accent: #2c3e50;
+  --text-main: #ffffff;
+  --color-highlight: #00ff88;
+  --color-avg: #ffcc00;
+}
+
+[data-theme='solar'] {
+  --bg-primary: #ffffff;
+  --bg-accent: #eeeeee;
+  --text-main: #000000;
+  --color-highlight: #000000;
+  --color-avg: #000000;
+
+  .history-dot {
+    background: #000 !important;
+  }
+  .pulse-ring {
+    border-color: #000;
+  }
+}
+
+[data-theme='night'] {
+  --bg-primary: #000000;
+  --bg-accent: #111111;
+  --text-main: #4dffb8;
+  --color-highlight: #4dffb8;
+  --color-avg: #ffa500;
+}
+
+.container {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  transition: all 0.2s ease-in-out;
+}
+
+.theme-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px;
+  background: rgba(0, 0, 0, 0.2);
+
+  button {
+    flex: 1;
+    font-size: 0.7rem;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: var(--text-main);
+    border-radius: 4px;
+
+    &.active {
+      background: var(--color-highlight);
+      color: var(--bg-primary);
+      font-weight: bold;
+    }
+  }
+}
+
+.value {
+  color: var(--color-highlight);
+}
+.avg {
+  color: var(--color-avg);
+}
+.zone.left {
+  background: var(--bg-accent);
+}

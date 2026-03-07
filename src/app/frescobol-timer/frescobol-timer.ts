@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 export class FrescobolTimer implements OnInit {
   distancia = signal<number>(8);
   lastTapTime = signal<number | null>(null);
+  theme = signal<'default' | 'solar' | 'night'>('default');
 
   // Histórico de velocidades em m/s
   historico = signal<number[]>([]);
@@ -33,6 +34,8 @@ export class FrescobolTimer implements OnInit {
 
   ngOnInit(): void {
     this.manterTelaAtiva();
+    const saved = localStorage.getItem('fresco-theme') as any;
+    if (saved) this.theme.set(saved);
   }
 
   async manterTelaAtiva() {
@@ -66,6 +69,13 @@ export class FrescobolTimer implements OnInit {
   reset() {
     this.historico.set([]);
     this.lastTapTime.set(null);
+  }
+
+  setTheme(newTheme: 'default' | 'solar' | 'night') {
+    this.theme.set(newTheme);
+
+    // Opcional: Salvar preferência no LocalStorage para o PWA lembrar depois
+    localStorage.setItem('fresco-theme', newTheme);
   }
 
   exportarDados() {

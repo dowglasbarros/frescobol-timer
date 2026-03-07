@@ -1,4 +1,10 @@
-<div class="container">
+<div class="container" [attr.data-theme]="theme()">
+  <nav class="theme-switcher">
+    <button (click)="setTheme('default')" [class.active]="theme() === 'default'">Standard</button>
+    <button (click)="setTheme('solar')" [class.active]="theme() === 'solar'">☀️ Solar</button>
+    <button (click)="setTheme('night')" [class.active]="theme() === 'night'">🌙 Night</button>
+  </nav>
+
   <header class="dashboard">
     <div class="actions">
       <button class="btn-reset" (click)="reset()">Limpar</button>
