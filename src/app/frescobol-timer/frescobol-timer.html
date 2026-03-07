@@ -99,3 +99,18 @@
     <button class="reset-fab" (click)="resetTudo()">↺</button>
   }
 </div>
+
+@if (showInstallModal()) {
+  <div class="install-overlay">
+    <div class="install-card">
+      <div class="icon-header">🎾</div>
+      <h3>Instalar Frescobol Speed Tracker?</h3>
+      <p>Tenha acesso rápido na areia, modo tela cheia e funcionamento offline.</p>
+
+      <div class="install-actions">
+        <button class="btn-cancel" (click)="fecharModal()">AGORA NÃO</button>
+        <button class="btn-confirm" (click)="instalarPWA()">INSTALAR</button>
+      </div>
+    </div>
+  </div>
+}

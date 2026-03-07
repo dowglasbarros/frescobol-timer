@@ -1,3 +1,12 @@
+:host {
+  // Variáveis Padrão (Default)
+  --bg-primary: #1a1a1a;
+  --bg-accent: #2c3e50;
+  --text-main: #ffffff;
+  --color-highlight: #00ff88;
+  --color-avg: #ffcc00;
+}
+
 .fresco-ui {
   height: 100vh;
   display: flex;
@@ -289,6 +298,98 @@
   font-size: 1.5rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   cursor: pointer;
+}
+
+.install-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  animation: fadeIn 0.3s ease;
+}
+
+.install-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--color-highlight);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+
+  .icon-header {
+    font-size: 3rem;
+    margin-bottom: 15px;
+  }
+
+  h3 {
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+  p {
+    color: var(--text-main);
+    opacity: 0.8;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+  }
+}
+
+.install-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  button {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    border: none;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .btn-confirm {
+    background: #00ff88;
+    color: #000;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  .btn-cancel {
+    background: transparent;
+    color: #666;
+    font-size: 0.75rem;
+    padding: 8px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- DETECÇÃO DE TELA HORIZONTAL (LANDSCAPE) --- */

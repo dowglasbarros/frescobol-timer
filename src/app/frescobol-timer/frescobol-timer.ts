@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import {
+  Component,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  OnInit,
+  HostListener,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -20,6 +27,20 @@ export class FrescobolTimer implements OnInit {
   intervalId: any;
   audioCtx: AudioContext | null = null;
   lastPlayerId = signal<1 | 2 | null>(null);
+
+  // Signal para armazenar o evento de instalação (DeferredPrompt)
+  deferredPrompt = signal<any>(null);
+  showInstallModal = signal<boolean>(false);
+
+  @HostListener('window:beforeinstallprompt', ['$event'])
+  onBeforeInstallPrompt(e: Event) {
+    // Impede que o navegador mostre o banner padrão automaticamente
+    e.preventDefault();
+    // Guarda o evento para disparar depois
+    this.deferredPrompt.set(e);
+    // Mostra nossa modal customizada
+    this.showInstallModal.set(true);
+  }
 
   // Jogadores
   jogador1 = signal<string>('Atleta A');
@@ -198,6 +219,26 @@ export class FrescobolTimer implements OnInit {
       osc.start();
       osc.stop(this.audioCtx.currentTime + d);
     } catch {}
+  }
+
+  async instalarPWA() {
+    const promptEvent = this.deferredPrompt();
+    if (!promptEvent) return;
+
+    // Mostra o prompt nativo
+    promptEvent.prompt();
+
+    // Aguarda a escolha do usuário
+    const { outcome } = await promptEvent.userChoice;
+    console.log(`Usuário escolheu: ${outcome}`);
+
+    // Limpa o evento, pois ele só pode ser usado uma vez
+    this.deferredPrompt.set(null);
+    this.showInstallModal.set(false);
+  }
+
+  fecharModal() {
+    this.showInstallModal.set(false);
   }
 
   ngOnDestroy() {
