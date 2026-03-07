@@ -11,50 +11,92 @@
 .dashboard {
   flex: 0 0 auto;
   background: #111;
-  padding: 1rem;
+  padding: 0.5rem;
   border-bottom: 2px solid #00ff88;
-}
 
-.top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
 
-.stat-group,
-.falls-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  label {
-    font-size: 0.6rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-    color: #888;
-    margin-bottom: 5px;
-  }
-}
+    .side-col {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      text-align: center;
+      label {
+        font-size: 0.6rem;
+        color: #666;
+        font-weight: bold;
+      }
+    }
 
-.stepper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #222;
-  border-radius: 6px;
-  padding: 4px;
-  button {
-    background: #333;
-    border: none;
-    color: #fff;
-    width: 30px;
-    height: 30px;
-    border-radius: 4px;
-    font-weight: bold;
-  }
-  span {
-    font-family: monospace;
-    font-weight: bold;
+    .center-col {
+      text-align: center;
+
+      .timer-display {
+        margin-top: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+        font-weight: 900;
+        color: #00ff88;
+        line-height: 1;
+        font-family: monospace;
+      }
+
+      .btn-main {
+        margin-left: 5px;
+        background: transparent;
+        border: 1px solid #00ff88;
+        color: #00ff88;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.8rem;
+        width: fit-content;
+        &.active {
+          background: #ff4444;
+          border-color: #ff4444;
+          color: white;
+        }
+      }
+    }
+
+    .score-card {
+      border-radius: 12px;
+      text-align: center;
+      margin-top: 0.5rem;
+      .score-header {
+        font-size: 0.7rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+        opacity: 0.8;
+      }
+      .main-points {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #00ff88;
+        margin: 5px 0;
+      }
+      .penalty-warning {
+        color: #ff4444;
+        font-size: 0.7rem;
+        font-weight: bold;
+      }
+    }
+
+    .score-card {
+      transition: border 0.2s;
+      &.waiting-left {
+        border-left: 5px solid #00ff88;
+      }
+      &.waiting-right {
+        border-right: 5px solid #00ff88;
+      }
+    }
   }
 }
 
@@ -84,67 +126,45 @@
   }
 }
 
-.timer-section {
-  text-align: center;
-  .time-display {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 2.8rem;
+.fall-button {
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  font-weight: 900;
+  border-radius: 8px;
+  padding: 5px;
+  .num {
+    font-size: 1rem;
     font-weight: 900;
-    color: #00ff88;
-    line-height: 1;
-    &.low {
-      color: #ff4444;
-    }
   }
-  .btn-main {
-    margin-top: 5px;
-    background: transparent;
-    border: 1px solid #00ff88;
-    color: #00ff88;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-weight: bold;
+  small {
     font-size: 0.8rem;
-    &.active {
-      background: #ff4444;
-      border-color: #ff4444;
-      color: white;
-    }
+    opacity: 0.6;
+    margin-left: 2px;
   }
-}
-
-.score-card {
-  background: rgba(0, 255, 136, 0.1);
-  border-radius: 12px;
-  padding: 15px;
-  text-align: center;
-  margin-bottom: 1rem;
-  .score-header {
-    font-size: 0.7rem;
-    font-weight: bold;
-    letter-spacing: 2px;
-    opacity: 0.8;
+  &:active {
+    transform: scale(0.95);
   }
-  .main-points {
-    font-size: 3.5rem;
-    font-weight: 900;
-    color: #00ff88;
-    margin: 5px 0;
-  }
-  .penalty-warning {
+  &.danger {
     color: #ff4444;
-    font-size: 0.8rem;
-    font-weight: bold;
+    border-color: #ff4444;
   }
 }
 
-.score-card {
-  transition: border 0.2s;
-  &.waiting-left {
-    border-left: 5px solid #00ff88;
+.stepper-mini {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  button {
+    background: #333;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px;
   }
-  &.waiting-right {
-    border-right: 5px solid #00ff88;
+  span {
+    font-size: 0.9rem;
+    font-weight: bold;
   }
 }
 

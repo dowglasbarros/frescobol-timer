@@ -1,41 +1,42 @@
 <div class="fresco-ui">
   <header class="dashboard">
     <div class="top-row">
-      <div class="stat-group">
+      <div class="side-col">
         <label>DISTÂNCIA</label>
-        <div class="stepper">
+        <div class="stepper-mini">
           <button (click)="distancia.update(d => d-0.5)">-</button>
           <span>{{ distancia() }}m</span>
           <button (click)="distancia.update(d => d+0.5)">+</button>
         </div>
       </div>
 
-      <div class="timer-section">
-        <div class="time-display" [class.low]="tempoRestante() < 30">
-          {{ cronometroFormatado() }}
+      <div class="center-col">
+        <div
+          class="score-card"
+          [class.waiting-left]="lastPlayerId() === 2"
+          [class.waiting-right]="lastPlayerId() === 1"
+        >
+          <div class="score-header">SCORE DA DUPLA</div>
+          <div class="main-points">{{ pontuacaoFinal() }}</div>
+          @if (percentualPenalidade() > 0) {
+            <div class="penalty-warning">
+              PENALIDADE: -{{ (percentualPenalidade() * 100).toFixed(0) }}% PONTOS
+            </div>
+          }
         </div>
-        <button class="btn-main" (click)="toggleTimer()" [class.active]="timerAtivo()">
-          {{ timerAtivo() ? 'PAUSAR' : 'INICIAR' }}
-        </button>
+
+        <div class="timer-display" [class.low]="tempoRestante() < 30">
+          {{ cronometroFormatado() }}
+
+          <button class="btn-main" (click)="toggleTimer()" [class.active]="timerAtivo()">
+            {{ timerAtivo() ? 'PAUSAR' : 'INICIAR' }}
+          </button>
+        </div>
       </div>
 
-      <div
-        class="score-card"
-        [class.waiting-left]="lastPlayerId() === 2"
-        [class.waiting-right]="lastPlayerId() === 1"
-      >
-        <div class="score-header">SCORE DA DUPLA</div>
-        <div class="main-points">{{ pontuacaoFinal() }}</div>
-        @if (percentualPenalidade() > 0) {
-          <div class="penalty-warning">
-            PENALIDADE: -{{ (percentualPenalidade() * 100).toFixed(0) }}% PONTOS
-          </div>
-        }
-      </div>
-
-      <div class="falls-section">
+      <div class="side-col">
         <label>QUEDAS</label>
-        <div class="fall-box" (click)="registrarQueda()" [class.penalized]="quedas() > 5">
+        <div class="fall-button" (click)="registrarQueda()" [class.danger]="quedas() > 5">
           <span class="num">{{ quedas() }}</span>
           <small>/20</small>
         </div>
