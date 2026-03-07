@@ -1,4 +1,11 @@
-import { Component, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import {
+  Component,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  OnInit,
+  HostListener,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -15,6 +22,10 @@ export class FrescobolTimer implements OnInit {
   isSoundEnabled = signal<boolean>(true);
   lastTapTime = signal<number | null>(null);
   theme = signal<'default' | 'solar' | 'night'>('default');
+
+  // Signal para armazenar o evento de instalação (DeferredPrompt)
+  deferredPrompt = signal<any>(null);
+  showInstallModal = signal<boolean>(false);
 
   // Histórico de velocidades em m/s
   historico = signal<number[]>([]);
@@ -34,6 +45,16 @@ export class FrescobolTimer implements OnInit {
     return ((soma / lista.length) * 3.6).toFixed(1);
   });
 
+  @HostListener('window:beforeinstallprompt', ['$event'])
+  onBeforeInstallPrompt(e: Event) {
+    // Impede que o navegador mostre o banner padrão automaticamente
+    e.preventDefault();
+    // Guarda o evento para disparar depois
+    this.deferredPrompt.set(e);
+    // Mostra nossa modal customizada
+    this.showInstallModal.set(true);
+  }
+
   ngOnInit(): void {
     this.manterTelaAtiva();
     const saved = localStorage.getItem('fresco-theme') as any;
@@ -49,6 +70,26 @@ export class FrescobolTimer implements OnInit {
         console.error('Erro ao solicitar Wake Lock:', err);
       }
     }
+  }
+
+  async instalarPWA() {
+    const promptEvent = this.deferredPrompt();
+    if (!promptEvent) return;
+
+    // Mostra o prompt nativo
+    promptEvent.prompt();
+
+    // Aguarda a escolha do usuário
+    const { outcome } = await promptEvent.userChoice;
+    console.log(`Usuário escolheu: ${outcome}`);
+
+    // Limpa o evento, pois ele só pode ser usado uma vez
+    this.deferredPrompt.set(null);
+    this.showInstallModal.set(false);
+  }
+
+  fecharModal() {
+    this.showInstallModal.set(false);
   }
 
   tocarBip(frequencia = 880, duracao = 0.1) {
@@ -73,6 +114,12 @@ export class FrescobolTimer implements OnInit {
     const agora = performance.now();
     const anterior = this.lastTapTime();
 
+    if (this.isSoundEnabled()) {
+      this.tocarBip(); // Chamada do som
+    }
+
+    this.vibrar(20); // 20ms de vibração curta e seca
+
     if (anterior) {
       const deltaS = (agora - anterior) / 1000;
 
@@ -84,10 +131,6 @@ export class FrescobolTimer implements OnInit {
       }
     }
     this.lastTapTime.set(agora);
-
-    if (this.isSoundEnabled()) {
-      this.tocarBip(); // Chamada do som
-    }
   }
 
   reset() {
@@ -107,6 +150,12 @@ export class FrescobolTimer implements OnInit {
     // No iOS, o AudioContext precisa ser resumido após um gesto do usuário
     if (this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
+    }
+  }
+  private vibrar(ms: number) {
+    // Verifica se o navegador suporta a API e se não está em modo mudo
+    if ('vibrate' in navigator && this.isSoundEnabled()) {
+      navigator.vibrate(ms);
     }
   }
 
