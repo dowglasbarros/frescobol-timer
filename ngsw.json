@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1772914048843,
+  "timestamp": 1772917277538,
   "index": "/frescobol-timer/index.html",
   "assetGroups": [
     {
@@ -13,7 +13,7 @@
       "urls": [
         "/frescobol-timer/favicon.ico",
         "/frescobol-timer/index.html",
-        "/frescobol-timer/main-5N2CNEMB.js",
+        "/frescobol-timer/main-FKZVKMRG.js",
         "/frescobol-timer/manifest.webmanifest",
         "/frescobol-timer/styles-UKW5LG54.css"
       ],
@@ -33,8 +33,8 @@
   "dataGroups": [],
   "hashTable": {
     "/frescobol-timer/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
-    "/frescobol-timer/index.html": "c0b0d86c91cc99d2b96babf601beb1b39a5d77a8",
-    "/frescobol-timer/main-5N2CNEMB.js": "9de90ce6c09bbc169151f2edced588cd444babf5",
+    "/frescobol-timer/index.html": "a68cf5d30d959c2d63e2bfecdade99406912204f",
+    "/frescobol-timer/main-FKZVKMRG.js": "84bb1ddb8eed4f07107b3bcb8519e82fff50b87b",
     "/frescobol-timer/manifest.webmanifest": "9765e91f5ee28da99a218b726bfacb927b19a32c",
     "/frescobol-timer/styles-UKW5LG54.css": "3cfd89a41f2fa849811cb5c7fbcca9b9ccc37772"
   },
