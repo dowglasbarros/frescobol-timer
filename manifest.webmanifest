@@ -5,8 +5,8 @@
   "background_color": "#1a1a1a",
   "display": "standalone",
   "orientation": "landscape",
-  "scope": "/",
-  "start_url": "/",
+  "scope": "/frescobol-timer",
+  "start_url": "/frescobol-timer",
   "icons": [
     {
       "src": "icons/icon-48x48.png",
