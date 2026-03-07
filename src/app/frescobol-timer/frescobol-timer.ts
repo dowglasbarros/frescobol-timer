@@ -10,7 +10,9 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FrescobolTimer implements OnInit {
+  private audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
   distancia = signal<number>(8);
+  isSoundEnabled = signal<boolean>(true);
   lastTapTime = signal<number | null>(null);
   theme = signal<'default' | 'solar' | 'night'>('default');
 
@@ -49,6 +51,24 @@ export class FrescobolTimer implements OnInit {
     }
   }
 
+  tocarBip(frequencia = 880, duracao = 0.1) {
+    const oscillator = this.audioCtx.createOscillator();
+    const gainNode = this.audioCtx.createGain();
+
+    oscillator.type = 'sine'; // Som limpo
+    oscillator.frequency.setValueAtTime(frequencia, this.audioCtx.currentTime);
+
+    // Envelope de volume para evitar estalos (cliques) no som
+    gainNode.gain.setValueAtTime(0.5, this.audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duracao);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(this.audioCtx.currentTime + duracao);
+  }
+
   registrarToque() {
     const agora = performance.now();
     const anterior = this.lastTapTime();
@@ -64,6 +84,10 @@ export class FrescobolTimer implements OnInit {
       }
     }
     this.lastTapTime.set(agora);
+
+    if (this.isSoundEnabled()) {
+      this.tocarBip(); // Chamada do som
+    }
   }
 
   reset() {
@@ -76,6 +100,14 @@ export class FrescobolTimer implements OnInit {
 
     // Opcional: Salvar preferência no LocalStorage para o PWA lembrar depois
     localStorage.setItem('fresco-theme', newTheme);
+  }
+
+  toggleSound() {
+    this.isSoundEnabled.update((v) => !v);
+    // No iOS, o AudioContext precisa ser resumido após um gesto do usuário
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
   }
 
   exportarDados() {

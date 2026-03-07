@@ -287,3 +287,13 @@
 .zone.left {
   background: var(--bg-accent);
 }
+
+.sound-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border-left: 2px solid var(--color-highlight) !important;
+
+  &.muted {
+    opacity: 0.5;
+    text-decoration: line-through;
+  }
+}
