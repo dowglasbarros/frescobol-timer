@@ -1,1 +1,16 @@
 /* You can add global styles to this file, and also import other style files */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  // Impede scroll acidental e gestos de "pull-to-refresh"
+  overscroll-behavior-y: contain;
+  overflow: hidden;
+
+  // Impede zoom ao tocar rapidamente (essencial para precisão)
+  touch-action: manipulation;
+
+  // Impede seleção de texto ao tocar nas zonas de impacto
+  user-select: none;
+  -webkit-user-select: none;
+}
