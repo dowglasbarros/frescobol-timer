@@ -130,14 +130,24 @@ export class FrescobolTimer implements OnInit {
       const deltaS = (agora - anterior) / 1000;
       if (deltaS > 0.15) {
         const velKmh = (this.distancia() / deltaS) * 3.6;
-        const pts = Math.pow(velKmh, 2) / 50;
 
-        if (idBotaoClicado === 1) {
-          this.pontosJ2.update((h) => [...h, pts]);
-          this.velAtualJ2.set(velKmh);
+        if (velKmh >= 50) {
+          const pts = Math.pow(velKmh, 2) / 50;
+
+          if (idBotaoClicado === 1) {
+            this.pontosJ2.update((h) => [...h, pts]);
+            this.velAtualJ2.set(velKmh);
+          } else {
+            this.pontosJ1.update((h) => [...h, pts]);
+            this.velAtualJ1.set(velKmh);
+          }
         } else {
-          this.pontosJ1.update((h) => [...h, pts]);
-          this.velAtualJ1.set(velKmh);
+          if (idBotaoClicado === 1) {
+            this.velAtualJ2.set(velKmh);
+          } else {
+            this.velAtualJ1.set(velKmh);
+          }
+          console.log('Velocidade abaixo de 50km/h: Não pontuou.');
         }
       }
     }
