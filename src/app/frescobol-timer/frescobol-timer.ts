@@ -26,11 +26,11 @@ export class FrescobolTimer implements OnInit, OnDestroy {
   quedas = signal<number>(0);
   lastTapTime = signal<number | null>(null);
   intervalId: ReturnType<typeof setInterval> | null = null;
-  audioCtx: AudioContext | null = null;
   lastPlayerId = signal<1 | 2 | null>(null);
 
-  // Cache de Elementos de Áudio para Carregamento Rápido em PWA Offline
-  private audioCache = new Map<string, HTMLAudioElement>();
+  // Web Audio API Context e Cache de Buffers para Latência Zero
+  private audioCtx: AudioContext | null = null;
+  private soundBuffers = new Map<string, AudioBuffer>();
 
   // Signal para armazenar o evento de instalação (DeferredPrompt)
   deferredPrompt = signal<any>(null);
@@ -105,24 +105,38 @@ export class FrescobolTimer implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.intervalId) clearInterval(this.intervalId);
+    if (this.audioCtx && this.audioCtx.state !== 'closed') {
+      this.audioCtx.close();
+    }
   }
 
-  private preCarregarAudios() {
-    const arquivos = [
-      'som_sub_50kmh.wav',
-      'som_50_59kmh.wav',
-      'som_60_69kmh.wav',
-      'som_70_79kmh.wav',
-      'som_80_89kmh.wav',
-      'som_90_99kmh.wav',
-      'som_acima_100kmh.wav',
-    ];
-    arquivos.forEach((file) => {
-      const audio = new Audio(`assets/audio/${file}`);
-      audio.preload = 'auto';
-      audio.load();
-      this.audioCache.set(file, audio);
-    });
+  private async preCarregarAudios() {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      this.audioCtx = new AudioContextClass();
+
+      const ficheiros = [
+        'som_sub_50kmh.wav',
+        'som_50_59kmh.wav',
+        'som_60_69kmh.wav',
+        'som_70_79kmh.wav',
+        'som_80_89kmh.wav',
+        'som_90_99kmh.wav',
+        'som_acima_100kmh.wav',
+      ];
+
+      for (const file of ficheiros) {
+        const response = await fetch(`assets/audio/${file}`);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await this.audioCtx!.decodeAudioData(arrayBuffer);
+        this.soundBuffers.set(file, audioBuffer);
+      }
+    } catch (err) {
+      console.error(
+        'Erro crítico no pré-carregamento dos buffers de áudio via Web Audio API:',
+        err,
+      );
+    }
   }
 
   async manterTelaAtiva() {
@@ -253,21 +267,27 @@ export class FrescobolTimer implements OnInit, OnDestroy {
     else if (vel < 100) nomeArquivo = 'som_90_99kmh.wav';
     else nomeArquivo = 'som_acima_100kmh.wav';
 
-    // Executa o áudio de velocidade mapeada de forma acelerada (1.3x) e polifônica
-    this.tocarAudioEspecifico(nomeArquivo, 1.3);
+    // Executa instantaneamente via Web Audio API com velocidade acelerada (1.3x)
+    this.tocarAudioBuffer(nomeArquivo, 1.3);
     if ('vibrate' in navigator) navigator.vibrate(25);
   }
 
-  private tocarAudioEspecifico(nomeArquivo: string, velocidade: number = 1.0) {
-    const audioBase = this.audioCache.get(nomeArquivo);
-    if (audioBase) {
-      // Criação de um clone leve para permitir sobreposição simultânea (polifonia) sem pausar o anterior
-      const audioClone = audioBase.cloneNode(true) as HTMLAudioElement;
-      audioClone.playbackRate = velocidade;
-      audioClone.currentTime = 0;
-      audioClone.play().catch((error) => {
-        console.warn('Política de Autoplay impediu a reprodução do áudio:', error);
-      });
+  private tocarAudioBuffer(nomeArquivo: string, velocidade: number = 1.0) {
+    if (!this.audioCtx) return;
+
+    // Desperta o AudioContext se estiver suspenso pelas políticas de autoplay do browser
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+
+    const buffer = this.soundBuffers.get(nomeArquivo);
+    if (buffer) {
+      const sourceNode = this.audioCtx.createBufferSource();
+      sourceNode.buffer = buffer;
+      sourceNode.playbackRate.value = velocidade;
+
+      sourceNode.connect(this.audioCtx.destination);
+      sourceNode.start(0);
     }
   }
 
