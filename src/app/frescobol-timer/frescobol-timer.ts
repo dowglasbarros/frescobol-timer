@@ -116,7 +116,6 @@ export class FrescobolTimer implements OnInit, OnDestroy {
       'som_80_89kmh.wav',
       'som_90_99kmh.wav',
       'som_acima_100kmh.wav',
-      'som_fim_descanso.wav',
     ];
     arquivos.forEach((file) => {
       const audio = new Audio(`assets/audio/${file}`);
@@ -217,9 +216,6 @@ export class FrescobolTimer implements OnInit, OnDestroy {
       this.lastPlayerId.set(null);
       this.timerAtivo.set(false);
     } else {
-      // Dispara o som de fim de descanso de forma acelerada ao retomar o cronômetro
-      this.tocarAudioEspecifico('som_fim_descanso.wav', 1.0);
-
       this.intervalId = setInterval(() => {
         this.tempoRestante.update((t) => (t > 0 ? t - 1 : 0));
         if (this.tempoRestante() === 0) this.finalizarPartida('Fim de Jogo!');
@@ -265,7 +261,7 @@ export class FrescobolTimer implements OnInit, OnDestroy {
   private tocarAudioEspecifico(nomeArquivo: string, velocidade: number = 1.0) {
     const audioBase = this.audioCache.get(nomeArquivo);
     if (audioBase) {
-      // Criação de um clone leve para permitir sobreposição simultânea (polifonia)
+      // Criação de um clone leve para permitir sobreposição simultânea (polifonia) sem pausar o anterior
       const audioClone = audioBase.cloneNode(true) as HTMLAudioElement;
       audioClone.playbackRate = velocidade;
       audioClone.currentTime = 0;
