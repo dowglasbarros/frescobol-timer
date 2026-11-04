@@ -101,7 +101,7 @@ export class FrescobolTimer implements OnInit {
   async manterTelaAtiva() {
     if ('wakeLock' in navigator) {
       try {
-        const wakeLock = await (navigator as any).wakeLock.request('screen');
+        await (navigator as any).wakeLock.request('screen');
         console.log('Tela permanecerá ativa durante o jogo.');
       } catch (err) {
         console.error('Erro ao solicitar Wake Lock:', err);
@@ -131,9 +131,9 @@ export class FrescobolTimer implements OnInit {
       if (deltaS > 0.15) {
         const velKmh = (this.distancia() / deltaS) * 3.6;
 
+        // Regra: Abaixo de 50 km/h não pontua, mas exibe a velocidade
         if (velKmh >= 50) {
           const pts = Math.pow(velKmh, 2) / 50;
-
           if (idBotaoClicado === 1) {
             this.pontosJ2.update((h) => [...h, pts]);
             this.velAtualJ2.set(velKmh);
@@ -147,13 +147,15 @@ export class FrescobolTimer implements OnInit {
           } else {
             this.velAtualJ1.set(velKmh);
           }
-          console.log('Velocidade abaixo de 50km/h: Não pontuou.');
         }
-      }
-    }
 
-    // Feedback tátil e sonoro OCORRE SEMPRE (mesmo no saque)
-    this.executarFeedbacks();
+        // Executa o feedback sonoro específico mapeado por faixa de velocidade
+        this.reproduzirAudioPorVelocidade(velKmh);
+      }
+    } else {
+      // Feedback padrão de saque/primeiro toque
+      this.executarFeedbacksBasicos();
+    }
 
     // Atualiza a memória de tempo e lado para a PRÓXIMA batida
     this.lastPlayerId.set(idBotaoClicado);
@@ -163,7 +165,7 @@ export class FrescobolTimer implements OnInit {
   registrarQueda() {
     this.quedas.update((q) => q + 1);
 
-    // REGRA DE NEGÓCIO: Ao cair a bola, o timer deve pausar imediatamente
+    // Regra: Ao cair a bola, o timer deve pausar imediatamente
     if (this.timerAtivo()) {
       this.toggleTimer();
     }
@@ -216,23 +218,64 @@ export class FrescobolTimer implements OnInit {
     alert(`${m}\nScore Final: ${this.pontuacaoFinal()}`);
   }
 
-  executarFeedbacks() {
-    if ('vibrate' in navigator) navigator.vibrate(20);
-    this.tocarBip(600, 0.05);
+  reproduzirAudioPorVelocidade(vel: number) {
+    if (vel < 50) {
+      this.tocarBip(300, 0.04); // Abaixo de 50 km/h: Som grave/abafado
+    } else if (vel < 60) {
+      this.tocarBip(500, 0.05); // 50 a 59 km/h
+    } else if (vel < 70) {
+      this.tocarBip(650, 0.05); // 60 a 69 km/h
+    } else if (vel < 80) {
+      this.tocarBip(800, 0.06); // 70 a 79 km/h
+    } else if (vel < 90) {
+      this.tocarBip(950, 0.07); // 80 a 89 km/h (Metálico/agudo)
+    } else if (vel < 100) {
+      this.tocarBipDual(1100, 700, 0.08); // 90 a 99 km/h (Alarme leve)
+    } else {
+      this.tocarAlarmeSirene(); // Acima de 100 km/h (Sirene completa)
+    }
+    if ('vibrate' in navigator) navigator.vibrate(25);
   }
 
-  tocarBip(f: number, d: number) {
+  executarFeedbacksBasicos() {
+    if ('vibrate' in navigator) navigator.vibrate(20);
+    this.tocarBip(450, 0.04);
+  }
+
+  tocarBip(frequencia: number, duracao: number) {
     try {
       if (!this.audioCtx)
         this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const osc = this.audioCtx.createOscillator();
       const gain = this.audioCtx.createGain();
-      osc.frequency.setValueAtTime(f, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + d);
+      osc.frequency.setValueAtTime(frequencia, this.audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duracao);
       osc.connect(gain);
       gain.connect(this.audioCtx.destination);
       osc.start();
-      osc.stop(this.audioCtx.currentTime + d);
+      osc.stop(this.audioCtx.currentTime + duracao);
+    } catch {}
+  }
+
+  tocarBipDual(freq1: number, freq2: number, duracao: number) {
+    this.tocarBip(freq1, duracao / 2);
+    setTimeout(() => this.tocarBip(freq2, duracao / 2), 40);
+  }
+
+  tocarAlarmeSirene() {
+    try {
+      if (!this.audioCtx)
+        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(1400, this.audioCtx.currentTime + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+      osc.start();
+      osc.stop(this.audioCtx.currentTime + 0.15);
     } catch {}
   }
 
@@ -244,8 +287,7 @@ export class FrescobolTimer implements OnInit {
     promptEvent.prompt();
 
     // Aguarda a escolha do usuário
-    const { outcome } = await promptEvent.userChoice;
-    console.log(`Usuário escolheu: ${outcome}`);
+    await promptEvent.userChoice;
 
     // Limpa o evento, pois ele só pode ser usado uma vez
     this.deferredPrompt.set(null);
