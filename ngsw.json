@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1793759243484,
+  "timestamp": 1793760164312,
   "index": "/frescobol-timer/index.html",
   "assetGroups": [
     {
@@ -26,12 +26,29 @@
       "cacheQueryOptions": {
         "ignoreVary": true
       },
-      "urls": [],
+      "urls": [
+        "/frescobol-timer/assets/audio/som_50_59kmh.wav",
+        "/frescobol-timer/assets/audio/som_60_69kmh.wav",
+        "/frescobol-timer/assets/audio/som_70_79kmh.wav",
+        "/frescobol-timer/assets/audio/som_80_89kmh.wav",
+        "/frescobol-timer/assets/audio/som_90_99kmh.wav",
+        "/frescobol-timer/assets/audio/som_acima_100kmh.wav",
+        "/frescobol-timer/assets/audio/som_fim_descanso.wav",
+        "/frescobol-timer/assets/audio/som_sub_50kmh.wav"
+      ],
       "patterns": []
     }
   ],
   "dataGroups": [],
   "hashTable": {
+    "/frescobol-timer/assets/audio/som_50_59kmh.wav": "415d081c1bbc9e46e608b39912fb4f3d3b774bc0",
+    "/frescobol-timer/assets/audio/som_60_69kmh.wav": "84d9b03b4bf589e0cbc57e0d4733800f6fa31cec",
+    "/frescobol-timer/assets/audio/som_70_79kmh.wav": "ec8afb28c120c5670d120a59f06bc8e66b136531",
+    "/frescobol-timer/assets/audio/som_80_89kmh.wav": "b2107c04931847a6e0afb0299f548b44c1196150",
+    "/frescobol-timer/assets/audio/som_90_99kmh.wav": "a4dd288cb38ec89449ab169cf3e18cd2018cf448",
+    "/frescobol-timer/assets/audio/som_acima_100kmh.wav": "566a33d4ad8264df37ec8d5c160ee7c356d799ac",
+    "/frescobol-timer/assets/audio/som_fim_descanso.wav": "5c885324d634ac5d105722636574d24b387a7a1f",
+    "/frescobol-timer/assets/audio/som_sub_50kmh.wav": "fdefd4e0afceb83a291da76a6e618903cb985af1",
     "/frescobol-timer/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
     "/frescobol-timer/index.html": "fef9bc9e04beb6a24bdd931e3d50f1dfdf35d9e0",
     "/frescobol-timer/main-MANL25GK.js": "0fade4b55942b824c1d06226a4f0cfc87ae4aaaf",
