@@ -28,6 +28,9 @@ export class FrescobolTimer implements OnInit {
   audioCtx: AudioContext | null = null;
   lastPlayerId = signal<1 | 2 | null>(null);
 
+  // Cache de Elementos de Áudio para Carregamento Rápido em PWA Offline
+  private audioCache = new Map<string, HTMLAudioElement>();
+
   // Signal para armazenar o evento de instalação (DeferredPrompt)
   deferredPrompt = signal<any>(null);
   showInstallModal = signal<boolean>(false);
@@ -96,6 +99,24 @@ export class FrescobolTimer implements OnInit {
 
   ngOnInit(): void {
     this.manterTelaAtiva();
+    this.preCarregarAudios();
+  }
+
+  private preCarregarAudios() {
+    const arquivos = [
+      'som_sub_50kmh.wav',
+      'som_50_59kmh.wav',
+      'som_60_69kmh.wav',
+      'som_70_79kmh.wav',
+      'som_80_89kmh.wav',
+      'som_90_99kmh.wav',
+      'som_acima_100kmh.wav',
+    ];
+    arquivos.forEach((file) => {
+      const audio = new Audio(`assets/audio/${file}`);
+      audio.preload = 'auto';
+      this.audioCache.set(file, audio);
+    });
   }
 
   async manterTelaAtiva() {
@@ -150,10 +171,8 @@ export class FrescobolTimer implements OnInit {
         }
 
         // Executa o feedback sonoro específico mapeado por faixa de velocidade
-        this.reproduzirAudioFielVideo(velKmh);
+        this.tocarEfeitoMapeado(velKmh);
       }
-    } else {
-      this.tocarEfeitoSeco(220, 0.05); // Feedback padrão de saque
     }
 
     // Atualiza a memória de tempo e lado para a PRÓXIMA batida
@@ -217,101 +236,23 @@ export class FrescobolTimer implements OnInit {
     alert(`${m}\nScore Final: ${this.pontuacaoFinal()}`);
   }
 
-  // SÍNTESE DE ÁUDIO FIEL AOS EFEITOS DO VÍDEO DEMONSTRATIVO
-  reproduzirAudioFielVideo(vel: number) {
-    if (vel < 50) {
-      // Abaixo de 50 km/h: Som seco, grave e abafado
-      this.tocarEfeitoSeco(180, 0.08, 'sine');
-    } else if (vel < 60) {
-      // 50 a 59 km/h: Estalido leve padrão
-      this.tocarEfeitoSeco(440, 0.06, 'triangle');
-    } else if (vel < 70) {
-      // 60 a 69 km/h: Batida com ressonância limpa
-      this.tocarEfeitoSeco(580, 0.06, 'triangle');
-    } else if (vel < 80) {
-      // 70 a 79 km/h: Impacto intermediário firme
-      this.tocarEfeitoSeco(720, 0.07, 'square');
-    } else if (vel < 90) {
-      // 80 a 89 km/h: Timbre metálico/agudo ascendente
-      this.tocarSweepMetablico(880, 1100, 0.08);
-    } else if (vel < 100) {
-      // 90 a 99 km/h: Impacto forte com eco digital (Alarme duplo)
-      this.tocarAlarmeDuplo(1200, 900, 0.09);
-    } else {
-      // Acima de 100 km/h: Sirene digital de alta velocidade
-      this.tocarSireneAltaVelocidade();
+  tocarEfeitoMapeado(vel: number) {
+    let nomeArquivo = '';
+    if (vel < 50) nomeArquivo = 'som_sub_50kmh.wav';
+    else if (vel < 60) nomeArquivo = 'som_50_59kmh.wav';
+    else if (vel < 70) nomeArquivo = 'som_60_69kmh.wav';
+    else if (vel < 80) nomeArquivo = 'som_70_79kmh.wav';
+    else if (vel < 90) nomeArquivo = 'som_80_89kmh.wav';
+    else if (vel < 100) nomeArquivo = 'som_90_99kmh.wav';
+    else nomeArquivo = 'som_acima_100kmh.wav';
+
+    const audio = this.audioCache.get(nomeArquivo);
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
     }
-    if ('vibrate' in navigator) navigator.vibrate(30);
-  }
 
-  tocarEfeitoSeco(freq: number, duracao: number, tipoOnda: OscillatorType = 'sine') {
-    try {
-      if (!this.audioCtx)
-        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = this.audioCtx.createOscillator();
-      const gain = this.audioCtx.createGain();
-
-      osc.type = tipoOnda;
-      osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
-
-      // Decaimento rápido para simular o "clack" da batida
-      gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duracao);
-
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
-      osc.start();
-      osc.stop(this.audioCtx.currentTime + duracao);
-    } catch {}
-  }
-
-  tocarSweepMetablico(freqInicio: number, freqFim: number, duracao: number) {
-    try {
-      if (!this.audioCtx)
-        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = this.audioCtx.createOscillator();
-      const gain = this.audioCtx.createGain();
-
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freqInicio, this.audioCtx.currentTime);
-      osc.frequency.linearRampToValueAtTime(freqFim, this.audioCtx.currentTime + duracao);
-
-      gain.gain.setValueAtTime(0.25, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duracao);
-
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
-      osc.start();
-      osc.stop(this.audioCtx.currentTime + duracao);
-    } catch {}
-  }
-
-  tocarAlarmeDuplo(f1: number, f2: number, duracao: number) {
-    this.tocarEfeitoSeco(f1, duracao / 2, 'square');
-    setTimeout(() => this.tocarEfeitoSeco(f2, duracao / 2, 'square'), 45);
-  }
-
-  tocarSireneAltaVelocidade() {
-    try {
-      if (!this.audioCtx)
-        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = this.audioCtx.createOscillator();
-      const gain = this.audioCtx.createGain();
-
-      osc.type = 'sawtooth';
-      // Curva de frequência simulando a sirene de alerta do vídeo
-      osc.frequency.setValueAtTime(900, this.audioCtx.currentTime);
-      osc.frequency.linearRampToValueAtTime(1600, this.audioCtx.currentTime + 0.12);
-      osc.frequency.linearRampToValueAtTime(1100, this.audioCtx.currentTime + 0.2);
-
-      gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.2);
-
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
-      osc.start();
-      osc.stop(this.audioCtx.currentTime + 0.25);
-    } catch {}
+    if ('vibrate' in navigator) navigator.vibrate(25);
   }
 
   async instalarPWA() {
