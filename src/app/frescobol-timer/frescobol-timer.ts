@@ -5,6 +5,7 @@ import {
   computed,
   ChangeDetectionStrategy,
   OnInit,
+  OnDestroy,
   HostListener,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -17,14 +18,14 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./frescobol-timer.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FrescobolTimer implements OnInit {
+export class FrescobolTimer implements OnInit, OnDestroy {
   // Configurações Base
   distancia = signal<number>(8);
   tempoRestante = signal<number>(300);
   timerAtivo = signal<boolean>(false);
   quedas = signal<number>(0);
   lastTapTime = signal<number | null>(null);
-  intervalId: any;
+  intervalId: ReturnType<typeof setInterval> | null = null;
   audioCtx: AudioContext | null = null;
   lastPlayerId = signal<1 | 2 | null>(null);
 
@@ -102,6 +103,10 @@ export class FrescobolTimer implements OnInit {
     this.preCarregarAudios();
   }
 
+  ngOnDestroy(): void {
+    if (this.intervalId) clearInterval(this.intervalId);
+  }
+
   private preCarregarAudios() {
     const arquivos = [
       'som_sub_50kmh.wav',
@@ -111,10 +116,12 @@ export class FrescobolTimer implements OnInit {
       'som_80_89kmh.wav',
       'som_90_99kmh.wav',
       'som_acima_100kmh.wav',
+      'som_fim_descanso.wav',
     ];
     arquivos.forEach((file) => {
       const audio = new Audio(`assets/audio/${file}`);
       audio.preload = 'auto';
+      audio.load();
       this.audioCache.set(file, audio);
     });
   }
@@ -170,12 +177,10 @@ export class FrescobolTimer implements OnInit {
           }
         }
 
-        // Executa o feedback sonoro específico mapeado por faixa de velocidade
         this.tocarEfeitoMapeado(velKmh);
       }
     }
 
-    // Atualiza a memória de tempo e lado para a PRÓXIMA batida
     this.lastPlayerId.set(idBotaoClicado);
     this.lastTapTime.set(agora);
   }
@@ -204,21 +209,27 @@ export class FrescobolTimer implements OnInit {
   }
 
   toggleTimer() {
-    if (this.timerAtivo()) {
-      clearInterval(this.intervalId);
+    const estavaAtivo = this.timerAtivo();
+
+    if (estavaAtivo) {
+      if (this.intervalId) clearInterval(this.intervalId);
       this.lastTapTime.set(null);
       this.lastPlayerId.set(null);
+      this.timerAtivo.set(false);
     } else {
+      // Dispara o som de fim de descanso de forma acelerada ao retomar o cronômetro
+      this.tocarAudioEspecifico('som_fim_descanso.wav', 1.0);
+
       this.intervalId = setInterval(() => {
         this.tempoRestante.update((t) => (t > 0 ? t - 1 : 0));
         if (this.tempoRestante() === 0) this.finalizarPartida('Fim de Jogo!');
       }, 1000);
+      this.timerAtivo.set(true);
     }
-    this.timerAtivo.update((v) => !v);
   }
 
   resetTudo() {
-    clearInterval(this.intervalId);
+    if (this.intervalId) clearInterval(this.intervalId);
     this.timerAtivo.set(false);
     this.tempoRestante.set(300);
     this.pontosJ1.set([]);
@@ -231,7 +242,7 @@ export class FrescobolTimer implements OnInit {
   }
 
   finalizarPartida(m: string) {
-    clearInterval(this.intervalId);
+    if (this.intervalId) clearInterval(this.intervalId);
     this.timerAtivo.set(false);
     alert(`${m}\nScore Final: ${this.pontuacaoFinal()}`);
   }
@@ -246,13 +257,22 @@ export class FrescobolTimer implements OnInit {
     else if (vel < 100) nomeArquivo = 'som_90_99kmh.wav';
     else nomeArquivo = 'som_acima_100kmh.wav';
 
-    const audio = this.audioCache.get(nomeArquivo);
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
-    }
-
+    // Executa o áudio de velocidade mapeada de forma acelerada (1.3x) e polifônica
+    this.tocarAudioEspecifico(nomeArquivo, 1.3);
     if ('vibrate' in navigator) navigator.vibrate(25);
+  }
+
+  private tocarAudioEspecifico(nomeArquivo: string, velocidade: number = 1.0) {
+    const audioBase = this.audioCache.get(nomeArquivo);
+    if (audioBase) {
+      // Criação de um clone leve para permitir sobreposição simultânea (polifonia)
+      const audioClone = audioBase.cloneNode(true) as HTMLAudioElement;
+      audioClone.playbackRate = velocidade;
+      audioClone.currentTime = 0;
+      audioClone.play().catch((error) => {
+        console.warn('Política de Autoplay impediu a reprodução do áudio:', error);
+      });
+    }
   }
 
   async instalarPWA() {
@@ -272,9 +292,5 @@ export class FrescobolTimer implements OnInit {
 
   fecharModal() {
     this.showInstallModal.set(false);
-  }
-
-  ngOnDestroy() {
-    clearInterval(this.intervalId);
   }
 }
