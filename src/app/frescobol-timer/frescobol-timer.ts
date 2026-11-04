@@ -150,11 +150,10 @@ export class FrescobolTimer implements OnInit {
         }
 
         // Executa o feedback sonoro específico mapeado por faixa de velocidade
-        this.reproduzirAudioPorVelocidade(velKmh);
+        this.reproduzirAudioFielVideo(velKmh);
       }
     } else {
-      // Feedback padrão de saque/primeiro toque
-      this.executarFeedbacksBasicos();
+      this.tocarEfeitoSeco(220, 0.05); // Feedback padrão de saque
     }
 
     // Atualiza a memória de tempo e lado para a PRÓXIMA batida
@@ -218,38 +217,47 @@ export class FrescobolTimer implements OnInit {
     alert(`${m}\nScore Final: ${this.pontuacaoFinal()}`);
   }
 
-  reproduzirAudioPorVelocidade(vel: number) {
+  // SÍNTESE DE ÁUDIO FIEL AOS EFEITOS DO VÍDEO DEMONSTRATIVO
+  reproduzirAudioFielVideo(vel: number) {
     if (vel < 50) {
-      this.tocarBip(300, 0.04); // Abaixo de 50 km/h: Som grave/abafado
+      // Abaixo de 50 km/h: Som seco, grave e abafado
+      this.tocarEfeitoSeco(180, 0.08, 'sine');
     } else if (vel < 60) {
-      this.tocarBip(500, 0.05); // 50 a 59 km/h
+      // 50 a 59 km/h: Estalido leve padrão
+      this.tocarEfeitoSeco(440, 0.06, 'triangle');
     } else if (vel < 70) {
-      this.tocarBip(650, 0.05); // 60 a 69 km/h
+      // 60 a 69 km/h: Batida com ressonância limpa
+      this.tocarEfeitoSeco(580, 0.06, 'triangle');
     } else if (vel < 80) {
-      this.tocarBip(800, 0.06); // 70 a 79 km/h
+      // 70 a 79 km/h: Impacto intermediário firme
+      this.tocarEfeitoSeco(720, 0.07, 'square');
     } else if (vel < 90) {
-      this.tocarBip(950, 0.07); // 80 a 89 km/h (Metálico/agudo)
+      // 80 a 89 km/h: Timbre metálico/agudo ascendente
+      this.tocarSweepMetablico(880, 1100, 0.08);
     } else if (vel < 100) {
-      this.tocarBipDual(1100, 700, 0.08); // 90 a 99 km/h (Alarme leve)
+      // 90 a 99 km/h: Impacto forte com eco digital (Alarme duplo)
+      this.tocarAlarmeDuplo(1200, 900, 0.09);
     } else {
-      this.tocarAlarmeSirene(); // Acima de 100 km/h (Sirene completa)
+      // Acima de 100 km/h: Sirene digital de alta velocidade
+      this.tocarSireneAltaVelocidade();
     }
-    if ('vibrate' in navigator) navigator.vibrate(25);
+    if ('vibrate' in navigator) navigator.vibrate(30);
   }
 
-  executarFeedbacksBasicos() {
-    if ('vibrate' in navigator) navigator.vibrate(20);
-    this.tocarBip(450, 0.04);
-  }
-
-  tocarBip(frequencia: number, duracao: number) {
+  tocarEfeitoSeco(freq: number, duracao: number, tipoOnda: OscillatorType = 'sine') {
     try {
       if (!this.audioCtx)
         this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const osc = this.audioCtx.createOscillator();
       const gain = this.audioCtx.createGain();
-      osc.frequency.setValueAtTime(frequencia, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duracao);
+
+      osc.type = tipoOnda;
+      osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+
+      // Decaimento rápido para simular o "clack" da batida
+      gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duracao);
+
       osc.connect(gain);
       gain.connect(this.audioCtx.destination);
       osc.start();
@@ -257,25 +265,52 @@ export class FrescobolTimer implements OnInit {
     } catch {}
   }
 
-  tocarBipDual(freq1: number, freq2: number, duracao: number) {
-    this.tocarBip(freq1, duracao / 2);
-    setTimeout(() => this.tocarBip(freq2, duracao / 2), 40);
-  }
-
-  tocarAlarmeSirene() {
+  tocarSweepMetablico(freqInicio: number, freqFim: number, duracao: number) {
     try {
       if (!this.audioCtx)
         this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const osc = this.audioCtx.createOscillator();
       const gain = this.audioCtx.createGain();
+
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
-      osc.frequency.linearRampToValueAtTime(1400, this.audioCtx.currentTime + 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.15);
+      osc.frequency.setValueAtTime(freqInicio, this.audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(freqFim, this.audioCtx.currentTime + duracao);
+
+      gain.gain.setValueAtTime(0.25, this.audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duracao);
+
       osc.connect(gain);
       gain.connect(this.audioCtx.destination);
       osc.start();
-      osc.stop(this.audioCtx.currentTime + 0.15);
+      osc.stop(this.audioCtx.currentTime + duracao);
+    } catch {}
+  }
+
+  tocarAlarmeDuplo(f1: number, f2: number, duracao: number) {
+    this.tocarEfeitoSeco(f1, duracao / 2, 'square');
+    setTimeout(() => this.tocarEfeitoSeco(f2, duracao / 2, 'square'), 45);
+  }
+
+  tocarSireneAltaVelocidade() {
+    try {
+      if (!this.audioCtx)
+        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+
+      osc.type = 'sawtooth';
+      // Curva de frequência simulando a sirene de alerta do vídeo
+      osc.frequency.setValueAtTime(900, this.audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(1600, this.audioCtx.currentTime + 0.12);
+      osc.frequency.linearRampToValueAtTime(1100, this.audioCtx.currentTime + 0.2);
+
+      gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.2);
+
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+      osc.start();
+      osc.stop(this.audioCtx.currentTime + 0.25);
     } catch {}
   }
 
