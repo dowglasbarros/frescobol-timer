@@ -82,10 +82,10 @@ export class FrescobolTimer implements OnInit, OnDestroy {
     };
   });
 
-  // 3. PENALIDADE DE QUEDAS
+  // 3. PENALIDADE DE QUEDAS (A partir da 6ª queda, -3% por queda)
   percentualPenalidade = computed(() => {
     const q = this.quedas();
-    return q > 5 ? (q - 5) * 0.03 : 0; // -3% por queda após a 5ª
+    return q > 5 ? (q - 5) * 0.03 : 0;
   });
 
   pontuacaoFinal = computed(() => {
@@ -176,25 +176,25 @@ export class FrescobolTimer implements OnInit, OnDestroy {
       if (deltaS > 0.15) {
         const velKmh = (this.distancia() / deltaS) * 3.6;
 
-        // Regra: Abaixo de 50 km/h não pontua, mas exibe a velocidade
-        if (velKmh >= 50) {
-          const pts = Math.pow(velKmh, 2) / 50;
-          if (idBotaoClicado === 1) {
-            this.pontosJ2.update((h) => [...h, pts]);
-            this.velAtualJ2.set(velKmh);
-          } else {
-            this.pontosJ1.update((h) => [...h, pts]);
-            this.velAtualJ1.set(velKmh);
-          }
+        if (idBotaoClicado === 1) {
+          this.velAtualJ2.set(velKmh);
         } else {
-          if (idBotaoClicado === 1) {
-            this.velAtualJ2.set(velKmh);
-          } else {
-            this.velAtualJ1.set(velKmh);
-          }
+          this.velAtualJ1.set(velKmh);
         }
 
-        this.tocarEfeitoMapeado(velKmh);
+        // Regra de Negócio: Abaixo de 50 km/h não pontua
+        if (velKmh >= 50) {
+          // Regra de Negócio: Fórmula oficial vel² / 50, com teto estrito de 200 pontos para vel >= 100 km/h
+          const pts = Math.min(200, Math.pow(velKmh, 2) / 50);
+
+          if (idBotaoClicado === 1) {
+            this.pontosJ2.update((h) => [...h, pts]);
+          } else {
+            this.pontosJ1.update((h) => [...h, pts]);
+          }
+
+          this.tocarEfeitoMapeado(velKmh);
+        }
       }
     }
 
@@ -263,12 +263,11 @@ export class FrescobolTimer implements OnInit, OnDestroy {
 
   tocarEfeitoMapeado(vel: number) {
     let nomeArquivo = '';
-    if (vel < 50) nomeArquivo = 'som_sub_50kmh.wav';
-    else if (vel < 60) nomeArquivo = 'som_50_59kmh.wav';
-    else if (vel < 70) nomeArquivo = 'som_60_69kmh.wav';
-    else if (vel < 80) nomeArquivo = 'som_70_79kmh.wav';
-    else if (vel < 90) nomeArquivo = 'som_80_89kmh.wav';
-    else if (vel < 100) nomeArquivo = 'som_90_99kmh.wav';
+    if (vel >= 50 && vel < 60) nomeArquivo = 'som_50_59kmh.wav';
+    else if (vel >= 60 && vel < 70) nomeArquivo = 'som_60_69kmh.wav';
+    else if (vel >= 70 && vel < 80) nomeArquivo = 'som_70_79kmh.wav';
+    else if (vel >= 80 && vel < 90) nomeArquivo = 'som_80_89kmh.wav';
+    else if (vel >= 90 && vel < 100) nomeArquivo = 'som_90_99kmh.wav';
     else nomeArquivo = 'som_acima_100kmh.wav';
 
     // Executa instantaneamente via Web Audio API com velocidade acelerada (1.3x)
