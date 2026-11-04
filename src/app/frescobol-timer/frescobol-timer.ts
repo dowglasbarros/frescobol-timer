@@ -163,6 +163,11 @@ export class FrescobolTimer implements OnInit {
   registrarQueda() {
     this.quedas.update((q) => q + 1);
 
+    // REGRA DE NEGÓCIO: Ao cair a bola, o timer deve pausar imediatamente
+    if (this.timerAtivo()) {
+      this.toggleTimer();
+    }
+
     // Zera o tempo e libera qualquer lado para "sacar" a próxima bola
     this.lastTapTime.set(null);
     this.lastPlayerId.set(null);
