@@ -9,6 +9,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AdsenseService } from '../services/adsense';
 
 @Component({
   selector: 'app-frescobol-timer',
@@ -98,9 +99,12 @@ export class FrescobolTimer implements OnInit, OnDestroy {
     return `${min}:${seg.toString().padStart(2, '0')}`;
   });
 
+  constructor(private adsenseService: AdsenseService) {}
+
   ngOnInit(): void {
     this.manterTelaAtiva();
     this.preCarregarAudios();
+    this.adsenseService.carregarScript('ca-pub-1801816642283136');
   }
 
   ngOnDestroy(): void {
